@@ -15,17 +15,33 @@ class QuotesListTableViewController: UITableViewController {
 
     }
 
+    
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(true)
+        QuoteController.shared.loadFromPersistentStore()
+        tableView.reloadData()
+    }
+    
+    
     // MARK: - Table view data source
 
    
     override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return 0
+        return QuoteController.shared.quotes.count
     }
 
 
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        let cell = tableView.dequeueReusableCell(withIdentifier: "reuseIdentifier", for: indexPath)
-
+        let cell = tableView.dequeueReusableCell(withIdentifier: "quoteCell", for: indexPath)
+        
+        let quote = QuoteController.shared.quotes[indexPath.row]
+        
+        let dateFormatter = DateFormatter()
+        dateFormatter.dateStyle = .short
+        
+        
+        cell.textLabel?.text = quote.quoteText
+        cell.detailTextLabel?.text = dateFormatter.string(from: quote.quoteTimestamp)
         return cell
     }
     
@@ -34,7 +50,8 @@ class QuotesListTableViewController: UITableViewController {
     // Override to support editing the table view.
     override func tableView(_ tableView: UITableView, commit editingStyle: UITableViewCell.EditingStyle, forRowAt indexPath: IndexPath) {
         if editingStyle == .delete {
-            // Delete the row from the data source
+            let quoteToDelete = QuoteController.shared.quotes[indexPath.row]
+            QuoteController.shared.deleteQuote(quote: quoteToDelete)
             tableView.deleteRows(at: [indexPath], with: .fade)
         }
     }
@@ -42,10 +59,17 @@ class QuotesListTableViewController: UITableViewController {
 
     // MARK: - Navigation
 
-    // In a storyboard-based application, you will often want to do a little preparation before navigation
-    override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
-        // Get the new view controller using segue.destination.
-        // Pass the selected object to the new view controller.
+        override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
+            //IIDOO
+            //Identifier
+            if segue.identifier == "toDetailVC" {
+                //Index
+                guard let indexPath = tableView.indexPathForSelectedRow,
+                ///Destination
+                let destinationVC = segue.destination as? QuoteDetailViewController else { return }
+                let quote = QuoteController.shared.quotes[indexPath.row]
+                destinationVC.landingPad = quote
+            }
     }
    
 
